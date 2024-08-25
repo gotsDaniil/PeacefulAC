@@ -1,0 +1,8 @@
+name: PeacefulAntiCheat
+version: '${project.version}'
+main: com.example.peacefulanticheat.PeacefulAntiCheat
+api-version: '1.16'
+prefix: PeacefulAC
+load: STARTUP
+authors: [gotsDaniil]
+description: Античит дополнение для GrimAC и Vulcan

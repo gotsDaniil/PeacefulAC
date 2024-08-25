@@ -1,0 +1,50 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#   // Спасибо, что скачали мой античит
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+'#': |-
+  # punishment - команда наказания
+   # message - сообщение о наказании, можно в писать и время, если требуется
+   # Оставьте ' ', если хотите отключить punishment или message
+   # AutoFish - проверки на авто рыбалку
+   # AttackEat - проверка на атаку во время еды (поедания)
+   # BedrockPearlFix - блокировка прохода перкой через бедрок, опциально в аду
+   # ChatBan - наказывает игроков за сообщения содержащие название софта и его хвалу, пример: нурик топ
+   # NicknameBans - блокирует игроков за ники софтов, ботов и крашеров, пример: nurik, BebraProxy, ServerCrasher
+   # DragonFly - проверка на DragonFly, не дает быстро летать учитывая /speed игрока
+   # FastExp - блокирует выкидывание пузырьков опыта больше чем 10 за 0.55 секунды
+Checks:
+  AutoFish:
+    a:
+      punishment: kick
+      message: '&cAC Вы были кикнуты за подозрение в читах (AutoFish)'
+    b:
+      punishment: kick
+      message: '&cAC Вы были кикнуты за подозрение в читах (AutoFish)'
+    c:
+      punishment: kick
+      message: '&cAC Вы были кикнуты за подозрение в читах (AutoFish)'
+  AttackEat:
+    a:
+      punishment: ' '
+      message: ' '
+  BedrockPearlFix:
+    a:
+      punishment: ' '
+      message: ' '
+  ChatBan:
+    a:
+      punishment: tempipban
+      message: 14d &cAC Вы были временно забанены подозрение в читах
+  NicknameBans:
+    a:
+      punishment: banip
+      message: '&cAC Вы были временно забанены подозрение в читах'
+  DragonFly:
+    a:
+      punishment: ' '
+      message: ' '
+  FastExp:
+    a:
+      punishment: ' '
+      message: ' '
