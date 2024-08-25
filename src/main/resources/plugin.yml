@@ -6,3 +6,8 @@ prefix: PeacefulAC
 load: STARTUP
 authors: [gotsDaniil]
 description: Античит дополнение для GrimAC и Vulcan
+commands:
+  empty:
+    description: Ничего не делает.
+    permission: peacefulanticheat.use
+    permission-message: У вас нет прав для использования этой команды.

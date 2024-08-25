@@ -54,7 +54,7 @@ public class ConfigManager {
 
         config.addDefault("#"," # punishment - команда наказания\n" +
                 " # message - сообщение о наказании, можно в писать и время, если требуется\n" +
-                " # Оставьте ' ', если хотите отключить punishment или message\n" +
+                " # Оставьте empty, если хотите отключить punishment или ' ' для message\n" +
                 " # AutoFish - проверки на авто рыбалку\n" +
                 " # AttackEat - проверка на атаку во время еды (поедания)\n" +
                 " # BedrockPearlFix - блокировка прохода перкой через бедрок, опциально в аду\n" +
@@ -69,17 +69,17 @@ public class ConfigManager {
         config.addDefault("Checks.AutoFish.b.message", "&cAC Вы были кикнуты за подозрение в читах (AutoFish)");
         config.addDefault("Checks.AutoFish.c.punishment", "kick");
         config.addDefault("Checks.AutoFish.c.message", "&cAC Вы были кикнуты за подозрение в читах (AutoFish)");
-        config.addDefault("Checks.AttackEat.a.punishment", " ");
+        config.addDefault("Checks.AttackEat.a.punishment", "empty");
         config.addDefault("Checks.AttackEat.a.message", " ");
-        config.addDefault("Checks.BedrockPearlFix.a.punishment", " ");
+        config.addDefault("Checks.BedrockPearlFix.a.punishment", "empty");
         config.addDefault("Checks.BedrockPearlFix.a.message", " ");
         config.addDefault("Checks.ChatBan.a.punishment", "tempipban");
         config.addDefault("Checks.ChatBan.a.message", "14d &cAC Вы были временно забанены подозрение в читах");
         config.addDefault("Checks.NicknameBans.a.punishment", "banip");
         config.addDefault("Checks.NicknameBans.a.message", "&cAC Вы были временно забанены подозрение в читах");
-        config.addDefault("Checks.DragonFly.a.punishment", " ");
+        config.addDefault("Checks.DragonFly.a.punishment", "empty");
         config.addDefault("Checks.DragonFly.a.message", " ");
-        config.addDefault("Checks.FastExp.a.punishment", " ");
+        config.addDefault("Checks.FastExp.a.punishment", "empty");
         config.addDefault("Checks.FastExp.a.message", " ");
         config.options().copyDefaults(true);
         saveConfig();

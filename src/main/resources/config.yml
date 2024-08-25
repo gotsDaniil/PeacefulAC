@@ -2,8 +2,8 @@
 #   // Спасибо, что скачали мой античит
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-'#': |-
-  # punishment - команда наказания
+'#': |2-
+   # punishment - команда наказания
    # message - сообщение о наказании, можно в писать и время, если требуется
    # Оставьте ' ', если хотите отключить punishment или message
    # AutoFish - проверки на авто рыбалку
@@ -26,11 +26,11 @@ Checks:
       message: '&cAC Вы были кикнуты за подозрение в читах (AutoFish)'
   AttackEat:
     a:
-      punishment: ' '
+      punishment: empty
       message: ' '
   BedrockPearlFix:
     a:
-      punishment: ' '
+      punishment: empty
       message: ' '
   ChatBan:
     a:
@@ -42,9 +42,9 @@ Checks:
       message: '&cAC Вы были временно забанены подозрение в читах'
   DragonFly:
     a:
-      punishment: ' '
+      punishment: empty
       message: ' '
   FastExp:
     a:
-      punishment: ' '
+      punishment: empty
       message: ' '
