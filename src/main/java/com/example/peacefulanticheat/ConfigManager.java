@@ -2,87 +2,62 @@ package com.example.peacefulanticheat;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import static org.bukkit.Bukkit.getLogger;
+import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.bukkit.Bukkit.*;
 
 public class ConfigManager {
     private final PeacefulAntiCheat plugin;
     private FileConfiguration config;
+    private final ConcurrentMap<String, Boolean> checkCache = new ConcurrentHashMap<>();
 
     public ConfigManager(PeacefulAntiCheat plugin) {
         this.plugin = plugin;
-        createConfig();
         loadConfig();
-        setDefaults();
     }
 
     private File getDataFolder() {
-        return plugin.getDataFolder();
-    }
-
-    private void createConfig() {
-        File configFile = new File(getDataFolder(), "config.yml");
-
-        // Проверяем, существует ли файл
-        if (!configFile.exists()) {
-            // Копируем файл из ресурсов
-            try (InputStream in = plugin.getResource("config.yml")) {
-                if (in == null) {
-                    return;
-                }
-                Files.copy(in, configFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                getLogger().info("Config.yml был успешно загружен из ресурсов!");
-            } catch (IOException e) {
-                getLogger().severe("Не удалось создать config.yml: " + e.getMessage());
-            }
+        File dataFolder = plugin.getDataFolder();
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs();
         }
+        return dataFolder;
     }
 
     private void loadConfig() {
         File configFile = new File(getDataFolder(), "config.yml");
+
+        // Проверяем, существует ли файл
+        if (!configFile.exists()) {
+            try {
+                // Копируем файл из ресурсов в папку плагина
+                InputStream inputStream = plugin.getResource("config.yml");
+                if (inputStream == null) {
+                    getLogger().severe("Файл config.yml не найден в ресурсах плагина!");
+                    return;
+                }
+                Path configFilePath = configFile.toPath();
+                if (configFilePath == null) {
+                    getLogger().severe("Не удалось получить путь к файлу config.yml!");
+                    return;
+                }
+                Files.copy(inputStream, configFilePath);
+            } catch (IOException e) {
+                getLogger().severe("Не удалось скопировать файл config.yml из ресурсов!");
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        // Загружаем конфигурацию
         config = YamlConfiguration.loadConfiguration(configFile);
-    }
-
-    private void setDefaults() {
-        config.options().header("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n" +
-                "  // Спасибо, что скачали мой античит\n" +
-                "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-
-        config.addDefault("#"," # punishment - команда наказания\n" +
-                " # message - сообщение о наказании, можно в писать и время, если требуется\n" +
-                " # Оставьте empty, если хотите отключить punishment или ' ' для message\n" +
-                " # AutoFish - проверки на авто рыбалку\n" +
-                " # AttackEat - проверка на атаку во время еды (поедания)\n" +
-                " # BedrockPearlFix - блокировка прохода перкой через бедрок, опциально в аду\n" +
-                " # ChatBan - наказывает игроков за сообщения содержащие название софта и его хвалу, пример: нурик топ\n" +
-                " # NicknameBans - блокирует игроков за ники софтов, ботов и крашеров, пример: nurik, BebraProxy, ServerCrasher\n" +
-                " # DragonFly - проверка на DragonFly, не дает быстро летать учитывая /speed игрока\n" +
-                " # FastExp - блокирует выкидывание пузырьков опыта больше чем 10 за 0.55 секунды");
-        // Устанавливаем значения по умолчанию
-        config.addDefault("Checks.AutoFish.a.punishment", "kick");
-        config.addDefault("Checks.AutoFish.a.message", "&cAC Вы были кикнуты за подозрение в читах (AutoFish)");
-        config.addDefault("Checks.AutoFish.b.punishment", "kick");
-        config.addDefault("Checks.AutoFish.b.message", "&cAC Вы были кикнуты за подозрение в читах (AutoFish)");
-        config.addDefault("Checks.AutoFish.c.punishment", "kick");
-        config.addDefault("Checks.AutoFish.c.message", "&cAC Вы были кикнуты за подозрение в читах (AutoFish)");
-        config.addDefault("Checks.AttackEat.a.punishment", "empty");
-        config.addDefault("Checks.AttackEat.a.message", " ");
-        config.addDefault("Checks.BedrockPearlFix.a.punishment", "empty");
-        config.addDefault("Checks.BedrockPearlFix.a.message", " ");
-        config.addDefault("Checks.ChatBan.a.punishment", "tempipban");
-        config.addDefault("Checks.ChatBan.a.message", "14d &cAC Вы были временно забанены подозрение в читах");
-        config.addDefault("Checks.NicknameBans.a.punishment", "banip");
-        config.addDefault("Checks.NicknameBans.a.message", "&cAC Вы были временно забанены подозрение в читах");
-        config.addDefault("Checks.DragonFly.a.punishment", "empty");
-        config.addDefault("Checks.DragonFly.a.message", " ");
-        config.addDefault("Checks.FastExp.a.punishment", "empty");
-        config.addDefault("Checks.FastExp.a.message", " ");
-        config.options().copyDefaults(true);
-        saveConfig();
     }
 
     public void saveConfig() {
@@ -93,75 +68,272 @@ public class ConfigManager {
         }
     }
 
-    public String getMessage() {
-        return config.getString("Checks.AutoFish.a.message");
+    public void reloadConfig() {
+        loadConfig();
+        checkCache.clear(); // Очищаем кэш после перезагрузки конфигурации
     }
 
-    public String getPunishment1() {
+    public boolean isCheckEnabled(String checkName) {
+        return checkCache.computeIfAbsent(checkName, name -> config.getBoolean("Checks." + name + ".enable"));
+    }
+
+    public String AutoFishPunishmentB() {
         return config.getString("Checks.AutoFish.b.punishment");
     }
 
-    public String getMessage1() {
-        return config.getString("Checks.AutoFish.b.message");
-    }
-
-    public String getPunishment2() {
-        return config.getString("Checks.AutoFish.c.punishment");
-    }
-
-    public String getMessage2() {
-        return config.getString("Checks.AutoFish.c.message");
-    }
-
-    public String getPunishment3() {
-        return config.getString("Checks.AttackEat.a.punishment");
-    }
-
-    public String getMessage3() {
-        return config.getString("Checks.AttackEat.a.message");
-    }
-
-    public String getPunishment4() {
-        return config.getString("Checks.BedrockPearlFix.a.punishment");
-    }
-
-    public String getMessage4() {
-        return config.getString("Checks.BedrockPearlFix.a.message");
-    }
-
-    public String getPunishment5() {
-        return config.getString("Checks.ChatBan.a.punishment");
-    }
-
-    public String getMessage5() {
-        return config.getString("Checks.ChatBan.a.message");
-    }
-
-    public String getPunishment6() {
-        return config.getString("Checks.NicknameBans.a.punishment");
-    }
-
-    public String getMessage6() {
-        return config.getString("Checks.NicknameBans.a.message");
-    }
-
-    public String getPunishment7() {
+    public String DragonFlyPunishment() {
         return config.getString("Checks.DragonFly.a.punishment");
     }
 
-    public String getMessage7() {
-        return config.getString("Checks.DragonFly.a.message");
-    }
-
-    public String getPunishment8() {
-        return config.getString("Checks.FastExp.a.punishment");
-    }
-
-    public String getMessage8() {
-        return config.getString("Checks.FastExp.a.message");
-    }
-
-    public String getPunishment() {
+    public String AutoFishPunishmentA() {
         return config.getString("Checks.AutoFish.a.punishment");
+    }
+
+    public int AutoFishAViolations() {
+        return config.getInt("Checks.AutoFish.a.violations");
+    }
+
+    public int AutoFishADeviation() {
+        return config.getInt("Checks.AutoFish.a.deviation");
+    }
+
+    public int AutoFishBTime() {
+        return config.getInt("Checks.AutoFish.b.time");
+    }
+
+    public int AdHeightFixHeight() {
+        return config.getInt("Checks.AdHeightFix.a.height");
+    }
+
+    public int AdHeightFixTeleport() {
+        return config.getInt("Checks.AdHeightFix.a.teleport");
+    }
+
+    public String AdHeightFixMessage() {
+        return config.getString("Checks.AdHeightFix.a.message");
+    }
+
+    public int DragonFlyViolations() {
+        return config.getInt("Checks.DragonFly.a.violations");
+    }
+
+    public int DragonFlySpeed_1_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_1_zx");
+    }
+
+    public int DragonFlySpeed_2_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_2_zx");
+    }
+
+    public int DragonFlySpeed_3_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_3_zx");
+    }
+
+    public int DragonFlySpeed_4_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_4_zx");
+    }
+
+    public int DragonFlySpeed_5_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_5_zx");
+    }
+
+    public int DragonFlySpeed_6_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_6_zx");
+    }
+
+    public int DragonFlySpeed_7_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_7_zx");
+    }
+
+    public int DragonFlySpeed_8_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_8_zx");
+    }
+
+    public int DragonFlySpeed_9_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_9_zx");
+    }
+
+    public int DragonFlySpeed_10_zx() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_10_zx");
+    }
+
+    public int DragonFlySpeed_1_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_1_y");
+    }
+
+    public int DragonFlySpeed_2_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_2_y");
+    }
+
+    public int DragonFlySpeed_3_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_3_y");
+    }
+
+    public int DragonFlySpeed_4_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_4_y");
+    }
+
+    public int DragonFlySpeed_5_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_5_y");
+    }
+
+    public int DragonFlySpeed_6_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_6_y");
+    }
+
+    public int DragonFlySpeed_7_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_7_y");
+    }
+
+    public int DragonFlySpeed_8_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_8_y");
+    }
+
+    public int DragonFlySpeed_9_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_9_y");
+    }
+
+    public int DragonFlySpeed_10_y() {
+        return config.getInt("Checks.DragonFly.a.Settings.Speed_10_y");
+    }
+
+    public int ElytraFlyViolations() {
+        return config.getInt("Checks.ElytraFly.a.violations");
+    }
+
+    public String ElytraFlyPunishment() {
+        return config.getString("Checks.ElytraFly.a.punishment");
+    }
+
+    public int ElytraFlyHeight() {
+        return config.getInt("Checks.ElytraFly.a.height");
+    }
+
+    public String ChatBanPunishment() {
+        return config.getString("Checks.ChatBan.a.punishment");
+    }
+
+    public String NicknameBansPunishment() {
+        return config.getString("Checks.NicknameBans.a.punishment");
+    }
+
+    public boolean MLAuraAdditionalChecks() {
+        return config.getBoolean("Checks.Aim.a.AddChecks.enable");
+    }
+
+    public double MLAuraMinAtan2() {
+        return config.getDouble("Checks.Aim.a.Settings.minAtan2");
+    }
+
+    public double MLAuraMaxAtan2() {
+        return config.getDouble("Checks.Aim.a.Settings.maxAtan2");
+    }
+
+    public double MLAuraSpeedPlayer() {
+        return config.getDouble("Checks.Aim.a.Settings.Speed");
+    }
+
+    public double MLAuraMinAccuracy() {
+        return config.getDouble("Checks.Aim.a.Settings.minAccuracy");
+    }
+
+    public double MLAuraMaxAccuracy() {
+        return config.getDouble("Checks.Aim.a.Settings.maxAccuracy");
+    }
+
+    public double MLAuraMinRotationSinCos() {
+        return config.getDouble("Checks.Aim.a.Settings.minRotationSinCos");
+    }
+
+    public double MLAuraMaxRotationSinCos() {
+        return config.getDouble("Checks.Aim.a.Settings.maxRotationSinCos");
+    }
+
+    public double MLAuraMinDirectionChange() {
+        return config.getDouble("Checks.Aim.a.Settings.minDirectionChange");
+    }
+
+    public double MLAuraMaxDirectionChange() {
+        return config.getDouble("Checks.Aim.a.Settings.maxDirectionChange");
+    }
+
+    public double MLAuraMinDirectionChangeSpeed() {
+        return config.getDouble("Checks.Aim.a.Settings.minDirectionChangeSpeed");
+    }
+
+    public double MLAuraMaxDirectionChangeSpeed() {
+        return config.getDouble("Checks.Aim.a.Settings.maxDirectionChangeSpeed");
+    }
+
+    public double MLAuraMinRotationSpeed() {
+        return config.getDouble("Checks.Aim.a.Settings.minRotationSpeed");
+    }
+
+    public double MLAuraMaxRotationSpeed() {
+        return config.getDouble("Checks.Aim.a.Settings.maxRotationSpeed");
+    }
+
+    public double MLAuraMinSnapAim() {
+        return config.getDouble("Checks.Aim.a.AddChecks.minSnapAim");
+    }
+
+    public double MLAuraMaxSnapAim() {
+        return config.getDouble("Checks.Aim.a.AddChecks.maxSnapAim");
+    }
+
+    public double MLAuraMinSilentDeviation() {
+        return config.getDouble("Checks.Aim.a.AddChecks.minSilentDeviation");
+    }
+
+    public double MLAuraMaxSilentDeviation() {
+        return config.getDouble("Checks.Aim.a.AddChecks.maxSilentDeviation");
+    }
+
+    public double MLAuraMinAngleDelta() {
+        return config.getDouble("Checks.Aim.a.AddChecks.minAngleDelta");
+    }
+
+    public double MLAuraMaxAngleDelta() {
+        return config.getDouble("Checks.Aim.a.AddChecks.maxAngleDelta");
+    }
+
+    public String MLAuraPunishment() {
+        return config.getString("Checks.Aim.a.punishment");
+    }
+
+    public int MLAuraMaxViolations() {
+        return config.getInt("Checks.Aim.a.violations");
+    }
+
+    public double AimBMinAtan2() {
+        return config.getDouble("Checks.Aim.b.Settings.minAtan2");
+    }
+
+    public double AimBMaxAtan2() {
+        return config.getDouble("Checks.Aim.b.Settings.maxAtan2");
+    }
+
+    public double AimBMinAccuracy() {
+        return config.getDouble("Checks.Aim.b.Settings.minAccuracy");
+    }
+
+    public double AimBMaxAccuracy() {
+        return config.getDouble("Checks.Aim.b.Settings.maxAccuracy");
+    }
+
+    public double AimBMinDirectionChange() {
+        return config.getDouble("Checks.Aim.b.Settings.minDirectionChange");
+    }
+
+    public double AimBMaxDirectionChange() {
+        return config.getDouble("Checks.Aim.b.Settings.maxDirectionChange");
+    }
+
+    public int AimBMaxViolations() {
+        return config.getInt("Checks.Aim.b.Settings.maxDirectionChange");
+    }
+
+    public String AimBPunishment() {
+        return config.getString("Checks.Aim.b.punishment");
     }
 }
