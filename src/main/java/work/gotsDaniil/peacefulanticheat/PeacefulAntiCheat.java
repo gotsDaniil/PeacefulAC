@@ -3,8 +3,8 @@ package work.gotsDaniil.peacefulanticheat;
 import work.gotsDaniil.peacefulanticheat.Checks.exploits.GamemodeCreativeFix;
 import work.gotsDaniil.peacefulanticheat.Checks.helpers.*;
 import work.gotsDaniil.peacefulanticheat.utils.*;
-import work.gotsDaniil.peacefulanticheat.Checks.combat.*;
-import work.gotsDaniil.peacefulanticheat.Checks.movement.*;
+import work.gotsDaniil.peacefulanticheat.Checks.cоmbat.*;
+import work.gotsDaniil.peacefulanticheat.Checks.mоvement.*;
 import work.gotsDaniil.peacefulanticheat.api.Placeholders;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -27,7 +27,7 @@ public class PeacefulAntiCheat extends JavaPlugin implements Listener {
     @Override
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().lоad();
     }
 
     @Override
