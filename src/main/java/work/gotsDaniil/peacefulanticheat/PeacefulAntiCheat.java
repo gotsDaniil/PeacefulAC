@@ -5,7 +5,7 @@ import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder
 import org.bukkit.plugin.Plugin;
 import work.gotsDaniil.peacefulanticheat.Checks.exploits.GamemodeCreativeFix;
 import work.gotsDaniil.peacefulanticheat.Checks.helpers.*;
-import work.gotsDaniil.peacefulanticheat.Checks.combat.*;
+import work.gotsDaniil.peacefulanticheat.Checks.cоmbat.*;
 import work.gotsDaniil.peacefulanticheat.Checks.movement.*;
 import work.gotsDaniil.peacefulanticheat.utils.Alerts.*;
 import work.gotsDaniil.peacefulanticheat.utils.Discord.*;
