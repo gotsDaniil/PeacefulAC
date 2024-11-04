@@ -1,0 +1,32 @@
+name: PeacefulAntiCheat
+version: '${project.version}'
+main: work.gotsDaniil.peacefulanticheat.PeacefulAntiCheat
+api-version: '1.16'
+prefix: PeacefulAC
+load: STARTUP
+authors: [gotsDaniil]
+description: Античит дополнение для GrimAC и Vulcan
+depend: [packetevents]
+softdepend:
+  - GrimAC
+  - Vulcan
+  - Essentials
+  - ViaVersion
+  - ViaBackwards
+  - ViaRewind
+  - ZNPCs
+commands:
+  empty:
+    description: Ничего не делает.
+    permission: peaceful.use
+    permission-message: У вас нет прав для использования этой команды.
+  gm1:
+    description: Изменяет режим игры на выживание.
+    usage: /gm1
+  peaceful:
+    description: Включает/выключает оповещения от античита и перезагружает конфигурацию.
+    usage: /peaceful <alerts>
+    permission: peaceful.alerts
+    permission-message: У вас нет прав для использования этой команды.
+    aliases:
+      - peacefulac
