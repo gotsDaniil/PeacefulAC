@@ -1,19 +1,25 @@
 package work.gotsDaniil.peacefulanticheat.checks.combat;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import work.gotsDaniil.peacefulanticheat.ConfigManager;
 import work.gotsDaniil.peacefulanticheat.PeacefulAntiCheat;
+import work.gotsDaniil.peacefulanticheat.api.Placeholders;
+import work.gotsDaniil.peacefulanticheat.utils.Alerts.AlertManager;
+import work.gotsDaniil.peacefulanticheat.utils.Discord.DiscordWebhook;
+import work.gotsDaniil.peacefulanticheat.utils.ViolationsReset;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -22,10 +28,22 @@ import java.util.UUID;
 public class AutoClicker extends PacketListenerAbstract implements Listener {
 
     private final PeacefulAntiCheat plugin;
+    private final ConfigManager configManager;
+    private final DiscordWebhook DiscordWebhook;
+    private final ViolationsReset violationsReset;
     private final ConcurrentMap<UUID, Boolean> leftClickChecks = new ConcurrentHashMap<>();
+    private final String WEBHOOK_URL;
+    private final int maxViolations;
 
-    public AutoClicker(PeacefulAntiCheat plugin) {
+    public AutoClicker(ConfigManager configManager, PeacefulAntiCheat plugin) {
         this.plugin = plugin;
+        this.configManager = configManager;
+        this.WEBHOOK_URL = configManager.DISCORD_WEBHOOK_URL();
+        this.DiscordWebhook = new DiscordWebhook(configManager);
+        this.violationsReset = new ViolationsReset(configManager, plugin);
+        this.maxViolations = configManager.AutoClickerMaxViolations();
+
+        PacketEvents.getAPI().getEventManager().registerListener(this);
     }
 
     @EventHandler
@@ -48,6 +66,8 @@ public class AutoClicker extends PacketListenerAbstract implements Listener {
 
             if (player == null) return;
 
+            String playerName = player.getName();
+
             if (interactPacket.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
 
                 if (leftClickChecks.getOrDefault(playerUUID, false)) {
@@ -55,7 +75,18 @@ public class AutoClicker extends PacketListenerAbstract implements Listener {
                         @Override
                         public void run() {
                             if (leftClickChecks.getOrDefault(playerUUID, false)) {
-                                Bukkit.broadcastMessage(ChatColor.RED + "Игрок " + player.getName() + " атаковал без нажатия ЛКМ!");
+                                event.setCancelled(true);
+
+                                violationsReset.addViolation(playerUUID);
+                                int violations = violationsReset.getViolations(playerUUID);
+
+                                AlertManager.sendAlert(configManager, player, "AutoClicker", violations, maxViolations);
+                                DiscordWebhook.sendAlert(WEBHOOK_URL, playerName, "AutoClicker", violations, maxViolations);
+
+                                if (violations >= maxViolations) {
+                                    executePunishment(playerName);
+                                    violationsReset.deleteViolations(playerUUID);
+                                }
                             }
                             leftClickChecks.remove(playerUUID);
                         }
@@ -65,5 +96,24 @@ public class AutoClicker extends PacketListenerAbstract implements Listener {
                 }
             }
         }
+    }
+
+    private void executePunishment(String playerName) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            String punishment = configManager.AutoClickerPunishment();
+
+            if (punishment.isEmpty() || punishment.trim().isEmpty()) return;
+
+            Player player = Bukkit.getPlayer(playerName);
+            if (player != null) {
+                punishment = Placeholders.replacePlaceholderPlayer(player, punishment);
+
+                AlertManager.sendAlertPunishment(configManager, player, "AutoClicker");
+                DiscordWebhook.sendAlertPunish(WEBHOOK_URL, playerName, "AutoClicker");
+
+                ConsoleCommandSender consoleSender = Bukkit.getServer().getConsoleSender();
+                Bukkit.dispatchCommand(consoleSender, punishment);
+            }
+        });
     }
 }

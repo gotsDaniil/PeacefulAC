@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 
 public class AimB extends PacketListenerAbstract {
 
+    private final PeacefulAntiCheat plugin;
     private final ConfigManager configManager;
     private final DiscordWebhook DiscordWebhook;
     private final ViolationsReset violationsReset;
@@ -33,7 +34,6 @@ public class AimB extends PacketListenerAbstract {
     private final double minDirectionChange;
     private final double maxDirectionChange;
     private final int maxViolations;
-    private final PeacefulAntiCheat plugin;
     private final String WEBHOOK_URL;
 
     public AimB(ConfigManager configManager, PeacefulAntiCheat plugin) {

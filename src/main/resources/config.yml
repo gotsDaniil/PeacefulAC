@@ -110,6 +110,17 @@ Checks:
       Settings: # Выдача скорости реализуется Aim C, если он включен
         InitialHitsCounts: 15 # Количество ударов которое надо нанести не промахиваясь
         BlockedHitInterval: 600 # Время между атакой которое меньше или равно вашему числу в мс
+
+  AutoClicker:
+    # Проверка на отсутвие клика (ЛКМ) во время атаки
+    a:
+      enable: true
+      violations: 3
+      punishment: kick %player% &cAC Вы были кикнуты за подозрение в читах (AutoClicker)
+  # Проверка на атаку во время еды
+  AttackEat:
+    a:
+      enable: true
   # Проверка на AutoFish (авто-рыбалку)
   AutoFish:
     a:
@@ -121,10 +132,6 @@ Checks:
       enable: true
       punishment: 'kick %player% &cAC Вы были кикнуты за подозрение в читах (AutoFish)'
       time: 1800000 # Время в секундах через которое кикнет за АФК
-  # Проверка на атаку во время еды
-  AttackEat:
-    a:
-      enable: true
   # Блокировка выхода за верхний бедрок в аду
   AdHeightFix:
     a:

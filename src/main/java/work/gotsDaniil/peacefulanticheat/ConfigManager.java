@@ -302,6 +302,14 @@ public class ConfigManager {
         return config.getInt("Checks.Aim.d.Settings.BlockedHitInterval");
     }
 
+    public int AutoClickerMaxViolations() {
+        return config.getInt("Checks.AutoClicker.a.violations");
+    }
+
+    public String AutoClickerPunishment() {
+        return config.getString("Checks.AutoClicker.a.punishment");
+    }
+
     public String InvMovePunishment() {
         return config.getString("Checks.Inventory.a.punishment");
     }

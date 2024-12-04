@@ -66,6 +66,7 @@ public class PeacefulAntiCheat extends JavaPlugin implements Listener {
                 new Check("Aim.b", () -> new AimB(configManager, this)),
                 new Check("Aim.c", () -> new AimC(configManager, this)),
                 new Check("Aim.d", () -> new AimD(configManager, this)),
+                new Check("AutoClicker.a", () -> new AutoClicker(configManager, this)),
                 new Check("AutoFish.a", () -> new AutoFishA(configManager, this)),
                 new Check("AutoFish.b", () -> new AutoFishB(configManager, this)),
                 new Check("AdHeightFix.a", () -> new AdHeightFix(configManager, this)),
@@ -104,9 +105,6 @@ public class PeacefulAntiCheat extends JavaPlugin implements Listener {
 
         PlayerRotationCalculations PlayerRotationCalculations = new PlayerRotationCalculations();
         Bukkit.getPluginManager().registerEvents(PlayerRotationCalculations, this);
-
-        AutoClicker AutoClicker = new AutoClicker(this);
-        PacketEvents.getAPI().getEventManager().registerListener(AutoClicker);
     }
 
     private static class Check {

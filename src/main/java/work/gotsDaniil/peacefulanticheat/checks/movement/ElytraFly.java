@@ -157,7 +157,7 @@ public class ElytraFly extends PacketListenerAbstract {
 
     private void executePunishment(String playerName) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            String punishment = configManager.NicknamePatternsAPunishment();
+            String punishment = configManager.ElytraFlyPunishment();
 
             if (punishment.isEmpty() || punishment.trim().isEmpty()) return;
 
